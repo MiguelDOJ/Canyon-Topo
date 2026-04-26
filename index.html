@@ -1,0 +1,288 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Générateur Topo Canyon — WristTale</title>
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+body{background:#0d1117;color:#e6edf3;font-family:system-ui,-apple-system,sans-serif;font-size:15px;padding-bottom:60px}
+header{background:#161b22;border-bottom:1px solid #30363d;padding:16px 20px;display:flex;align-items:center;justify-content:space-between;position:sticky;top:0;z-index:100}
+.logo{font-size:18px;font-weight:700;color:#3fb950}
+.logo span{font-size:11px;color:#7d8590;font-weight:400;display:block}
+.badge{background:rgba(63,185,80,.12);border:1px solid rgba(63,185,80,.3);color:#3fb950;font-size:11px;font-weight:600;padding:4px 10px;border-radius:20px}
+.container{max-width:780px;margin:0 auto;padding:20px 14px}
+.card{background:#161b22;border:1px solid #30363d;border-radius:12px;margin-bottom:14px;overflow:hidden}
+.card-head{background:#1e2530;padding:11px 16px;border-bottom:1px solid #30363d;display:flex;align-items:center;gap:8px;font-size:12px;font-weight:700;text-transform:uppercase;letter-spacing:.8px;color:#e6edf3}
+.card-body{padding:16px}
+.grid2{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+@media(max-width:540px){.grid2{grid-template-columns:1fr}.span2{grid-column:auto!important}}
+.span2{grid-column:span 2}
+.field{display:flex;flex-direction:column;gap:4px}
+.field label{font-size:11px;color:#7d8590;font-weight:600;text-transform:uppercase;letter-spacing:.5px}
+.field input,.field select{background:#0d1117;border:1px solid #30363d;border-radius:8px;color:#e6edf3;font-family:inherit;font-size:14px;padding:9px 11px;outline:none;width:100%}
+.field input:focus,.field select:focus{border-color:#58a6ff}
+.field select option{background:#1e2530}
+.tip{font-size:12px;color:#58a6ff;background:rgba(88,166,255,.08);border:1px solid rgba(88,166,255,.2);border-radius:7px;padding:8px 11px;margin-bottom:12px}
+.obs-wrap{display:flex;flex-direction:column;gap:8px}
+.obs-card{border:1px solid #30363d;border-radius:9px;overflow:hidden}
+.obs-head{background:#1e2530;padding:9px 13px;display:flex;align-items:center;gap:7px;cursor:pointer}
+.obs-num{font-size:11px;font-weight:700;color:#7d8590;min-width:20px}
+.obs-icon{font-size:15px;min-width:20px}
+.obs-name{flex:1;font-size:13px;font-weight:500;color:#e6edf3;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.pill{font-size:10px;padding:2px 7px;border-radius:10px;font-weight:700;white-space:nowrap}
+.pF{background:rgba(63,185,80,.15);color:#3fb950}
+.pM{background:rgba(210,153,34,.15);color:#d29922}
+.pD{background:rgba(240,136,62,.15);color:#f0883e}
+.pE{background:rgba(248,81,73,.15);color:#f85149}
+.caret{font-size:9px;color:#7d8590;margin-left:2px;display:inline-block}
+.obs-body{padding:14px;display:none}
+.obs-body.open{display:block}
+.del-btn{background:none;border:1px solid #30363d;color:#7d8590;border-radius:6px;padding:3px 8px;font-size:11px;cursor:pointer;font-family:inherit;-webkit-appearance:none}
+.add-btn{display:block;width:100%;background:#1e2530;border:1px dashed #444c56;border-radius:9px;color:#7d8590;font-family:inherit;font-size:14px;font-weight:600;padding:14px;cursor:pointer;margin-top:8px;-webkit-appearance:none;text-align:center}
+.gen-btn{display:block;width:100%;background:#3fb950;border:none;color:#0d1117;border-radius:10px;padding:16px;font-size:15px;font-weight:700;cursor:pointer;font-family:inherit;margin-top:10px;-webkit-appearance:none}
+.result-box{display:none;margin-top:16px;border:1px solid rgba(63,185,80,.4);border-radius:12px;overflow:hidden}
+.result-box.show{display:block}
+.result-head{background:rgba(63,185,80,.12);padding:12px 16px;border-bottom:1px solid rgba(63,185,80,.3)}
+.result-title{font-size:14px;font-weight:700;color:#3fb950;margin-bottom:4px}
+.result-steps{font-size:12px;color:#7d8590;line-height:1.6}
+.result-steps b{color:#e6edf3}
+textarea.result-text{width:100%;background:#0d1117;border:none;color:#7d8590;font-family:monospace;font-size:11px;padding:14px;resize:none;height:200px;outline:none;line-height:1.6;display:block}
+.copy-btn{display:block;width:100%;background:#3fb950;border:none;color:#0d1117;padding:14px;font-size:14px;font-weight:700;cursor:pointer;font-family:inherit;-webkit-appearance:none}
+.copy-btn.copied{background:#238636}
+</style>
+</head>
+<body>
+<header>
+  <div class="logo">🏔 Canyon Topo<span>Générateur WristTale — Garmin Forerunner 965</span></div>
+  <div class="badge">WristTale .txt</div>
+</header>
+<div class="container">
+
+  <div class="card">
+    <div class="card-head">📋 Informations générales</div>
+    <div class="card-body">
+      <div class="grid2">
+        <div class="field"><label>Nom du canyon *</label><input id="nom" type="text" placeholder="ex: Gorges du Loup Noir"></div>
+        <div class="field"><label>Massif / Région</label><input id="massif" type="text" placeholder="ex: Préalpes du Sud"></div>
+        <div class="field"><label>Cotation globale</label><input id="cotation" type="text" placeholder="ex: V4 A3 III"></div>
+        <div class="field"><label>Engagement</label><input id="engagement" type="text" placeholder="ex: E3"></div>
+        <div class="field"><label>Durée</label><input id="duree" type="text" placeholder="ex: 5h à 7h"></div>
+        <div class="field"><label>Dénivelé</label><input id="denivele" type="text" placeholder="ex: -380m"></div>
+        <div class="field"><label>Période recommandée</label><input id="periode" type="text" placeholder="ex: Juin à Septembre"></div>
+        <div class="field"><label>Débit maxi praticable</label><input id="debit" type="text" placeholder="ex: 4 m³/s"></div>
+        <div class="field"><label>Matériel</label><input id="materiel" type="text" placeholder="ex: 2x corde 50m, combi 5mm"></div>
+        <div class="field"><label>Navette / Retour</label><input id="navette" type="text" placeholder="ex: 2 voitures ou 1h à pied"></div>
+      </div>
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="card-head">🚗 Accès et approche</div>
+    <div class="card-body">
+      <div class="grid2">
+        <div class="field"><label>Départ (parking, route, alt.)</label><input id="depart" type="text" placeholder="ex: Parking des Clues, D2205, 1050m"></div>
+        <div class="field"><label>Coordonnées GPS départ</label><input id="coords_depart" type="text" placeholder="ex: 43.8721 N / 6.9134 E"></div>
+        <div class="field"><label>Approche</label><input id="approche" type="text" placeholder="ex: 45min, sentier jaune"></div>
+        <div class="field"><label>Retour parking</label><input id="retour" type="text" placeholder="ex: Parking du Pont Vieux, 680m"></div>
+        <div class="field span2"><label>⚠️ Avertissement accès</label><input id="warning_acces" type="text" placeholder="ex: Route fermée en cas de crue"></div>
+      </div>
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="card-head">⛰️ Obstacles</div>
+    <div class="card-body">
+      <div class="tip">💡 Ajoutez chaque obstacle dans l'ordre de descente. Chaque obstacle = 1 chapitre sur la montre.</div>
+      <div class="obs-wrap" id="obs-list"></div>
+      <button class="add-btn" id="add-btn" type="button">＋ Ajouter un obstacle</button>
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="card-head">🏁 Sortie et retour</div>
+    <div class="card-body">
+      <div class="grid2">
+        <div class="field"><label>Coordonnées GPS sortie</label><input id="coords_sortie" type="text" placeholder="ex: 43.8512 N / 6.9287 E"></div>
+        <div class="field"><label>Retour (navette ou à pied)</label><input id="retour_sortie" type="text" placeholder="ex: 5min navette ou 1h à pied"></div>
+        <div class="field"><label>Urgences / réseau</label><input id="urgences" type="text" placeholder="ex: 15 / 112 — réseau présent"></div>
+        <div class="field"><label>Hébergement / infos pratiques</label><input id="hebergement" type="text" placeholder="ex: Camping des Gorges, 2km"></div>
+      </div>
+    </div>
+  </div>
+
+  <button class="gen-btn" id="gen-btn" type="button">⚙️ Générer le topo</button>
+
+  <div class="result-box" id="result-box">
+    <div class="result-head">
+      <div class="result-title">✅ Topo généré !</div>
+      <div class="result-steps">
+        <b>Étape 1 :</b> Appuyez sur "Tout copier" ci-dessous<br>
+        <b>Étape 2 :</b> Ouvrez <b>Notes</b> → Nouveau mémo → Coller<br>
+        <b>Étape 3 :</b> ··· → <b>Envoyer une copie</b> → <b>Enregistrer dans Fichiers</b> → nommez-le <b>canyon.txt</b><br>
+        <b>Étape 4 :</b> Ouvrez WristTale → + → sélectionnez le fichier
+      </div>
+    </div>
+    <textarea class="result-text" id="result-text" readonly></textarea>
+    <button class="copy-btn" id="copy-btn" type="button">📋 Tout copier dans le presse-papier</button>
+  </div>
+
+</div>
+<script>
+var counter=0;
+var obstacles=[];
+var TYPES=['🪢 Rappel','🦅 Saut','🛝 Toboggan','🧗 Désescalade','🚶 Marche aquatique','⚠️ Passage engagé','🏁 Sortie'];
+var DIFFS=[{v:'🟩 F',l:'Facile',c:'pF'},{v:'🟨 M',l:'Moyen',c:'pM'},{v:'🟧 D',l:'Difficile',c:'pD'},{v:'🟥 E',l:'Expert',c:'pE'}];
+
+function gv(id){var e=document.getElementById(id);return e?(e.value||'').trim():'';}
+function esc(s){return(s||'').replace(/&/g,'&amp;').replace(/"/g,'&quot;').replace(/</g,'&lt;').replace(/>/g,'&gt;');}
+function getData(n){return{type:gv('ot'+n),diff:gv('od'+n),nom:gv('on'+n),hauteur:gv('oh'+n),ancrage:gv('oa'+n),corde:gv('oc'+n),vasque:gv('ov'+n),debit:gv('odb'+n),variante:gv('ovar'+n),warning:gv('ow'+n),remarque:gv('or'+n)};}
+
+function addObstacle(){
+  counter=counter+1;
+  var n=counter;
+  obstacles.push(n);
+  var typeOpts='<option value="">— type —</option>';
+  for(var i=0;i<TYPES.length;i++){typeOpts+='<option value="'+esc(TYPES[i])+'">'+TYPES[i]+'</option>';}
+  var diffOpts='<option value="">— difficulté —</option>';
+  for(var i=0;i<DIFFS.length;i++){diffOpts+='<option value="'+esc(DIFFS[i].v)+'">'+DIFFS[i].v+' — '+DIFFS[i].l+'</option>';}
+  var div=document.createElement('div');
+  div.className='obs-card';
+  div.id='ocard'+n;
+  div.innerHTML=''
+    +'<div class="obs-head" id="ohead'+n+'">'
+    +'<span class="obs-num">'+obstacles.length+'</span>'
+    +'<span class="obs-icon" id="oic'+n+'">?</span>'
+    +'<span class="obs-name" id="onm'+n+'">Obstacle '+obstacles.length+'</span>'
+    +'<span id="opl'+n+'"></span>'
+    +'<button type="button" class="del-btn" id="odel'+n+'">Supprimer</button>'
+    +'<span class="caret" id="oca'+n+'">▲</span>'
+    +'</div>'
+    +'<div class="obs-body open" id="ob'+n+'">'
+    +'<div class="grid2">'
+    +'<div class="field"><label>Type *</label><select id="ot'+n+'">'+typeOpts+'</select></div>'
+    +'<div class="field"><label>Difficulté *</label><select id="od'+n+'">'+diffOpts+'</select></div>'
+    +'<div class="field span2"><label>Nom de l\'obstacle *</label><input type="text" id="on'+n+'" placeholder="ex: R1 - Grande Cascade"></div>'
+    +'<div class="field"><label>Hauteur / Longueur</label><input type="text" id="oh'+n+'" placeholder="ex: 22m"></div>'
+    +'<div class="field"><label>Ancrage</label><input type="text" id="oa'+n+'" placeholder="ex: 2 spits EN rive gauche"></div>'
+    +'<div class="field"><label>Corde nécessaire</label><input type="text" id="oc'+n+'" placeholder="ex: 30m"></div>'
+    +'<div class="field"><label>Vasque</label><input type="text" id="ov'+n+'" placeholder="ex: profonde 2m, nage 5m"></div>'
+    +'<div class="field"><label>Débit maxi</label><input type="text" id="odb'+n+'" placeholder="ex: 4 m³/s"></div>'
+    +'<div class="field"><label>Variante</label><input type="text" id="ovar'+n+'" placeholder="ex: contournement RD"></div>'
+    +'<div class="field span2"><label>⚠️ Avertissement sécurité</label><input type="text" id="ow'+n+'" placeholder="ex: Rocher immergé rive gauche"></div>'
+    +'<div class="field span2"><label>Remarque</label><input type="text" id="or'+n+'" placeholder="ex: Départ glissant, se vacher"></div>'
+    +'</div></div>';
+
+  document.getElementById('obs-list').appendChild(div);
+
+  document.getElementById('ohead'+n).addEventListener('click',function(){
+    var b=document.getElementById('ob'+n);var c=document.getElementById('oca'+n);
+    if(b)b.classList.toggle('open');
+    if(c)c.textContent=(b&&b.classList.contains('open'))?'▲':'▼';
+  });
+  document.getElementById('odel'+n).addEventListener('click',function(e){
+    e.stopPropagation();
+    obstacles=obstacles.filter(function(x){return x!==n;});
+    var card=document.getElementById('ocard'+n);
+    if(card)card.parentNode.removeChild(card);
+    for(var i=0;i<obstacles.length;i++){var el=document.querySelector('#ocard'+obstacles[i]+' .obs-num');if(el)el.textContent=i+1;}
+  });
+  document.getElementById('ot'+n).addEventListener('change',function(){
+    var ic=document.getElementById('oic'+n);if(ic){var v=gv('ot'+n);ic.textContent=v?v.split(' ')[0]:'?';}
+  });
+  document.getElementById('od'+n).addEventListener('change',function(){
+    var pl=document.getElementById('opl'+n);if(pl){var v=gv('od'+n);var d=null;
+    for(var i=0;i<DIFFS.length;i++){if(DIFFS[i].v===v){d=DIFFS[i];break;}}
+    pl.innerHTML=d?'<span class="pill '+d.c+'">'+d.v+'</span>':'';}
+  });
+  document.getElementById('on'+n).addEventListener('input',function(){
+    var nm=document.getElementById('onm'+n);if(nm){var v=gv('on'+n);nm.textContent=v||('Obstacle '+(obstacles.indexOf(n)+1));}
+  });
+  div.scrollIntoView({behavior:'smooth',block:'nearest'});
+}
+
+document.getElementById('add-btn').addEventListener('click',function(){addObstacle();});
+
+document.getElementById('gen-btn').addEventListener('click',function(){
+  var nom=gv('nom');
+  if(!nom){alert('Veuillez saisir le nom du canyon.');return;}
+  var total=2+obstacles.length+1;
+  var L=[];
+  L.push('---');
+  L.push('title: '+nom);
+  L.push('author: Topo Perso');
+  L.push('chapters: '+total);
+  L.push('---');
+  L.push('');
+  L.push('# Infos');
+  L.push('');
+  L.push('Canyon: '+nom);
+  if(gv('massif'))     L.push('Massif: '+gv('massif'));
+  if(gv('cotation'))   L.push('Cotation: '+gv('cotation'));
+  if(gv('engagement')) L.push('Engagement: '+gv('engagement'));
+  if(gv('duree'))      L.push('Duree: '+gv('duree'));
+  if(gv('denivele'))   L.push('Denivele: '+gv('denivele'));
+  if(gv('periode'))    L.push('Periode: '+gv('periode'));
+  if(gv('debit'))      L.push('Debit max: '+gv('debit'));
+  if(gv('materiel'))   L.push('Materiel: '+gv('materiel'));
+  if(gv('navette'))    L.push('Navette: '+gv('navette'));
+  L.push('');
+  L.push('# Acces');
+  L.push('');
+  if(gv('depart'))        L.push('Depart: '+gv('depart'));
+  if(gv('coords_depart')) L.push('GPS: '+gv('coords_depart'));
+  if(gv('approche'))      L.push('Approche: '+gv('approche'));
+  if(gv('retour'))        L.push('Retour: '+gv('retour'));
+  if(gv('warning_acces')) L.push('/!\\ '+gv('warning_acces'));
+  L.push('');
+  for(var i=0;i<obstacles.length;i++){
+    var n=obstacles[i];
+    var d=getData(n);
+    var icon=d.type?d.type.split(' ')[0]:'';
+    var diff=d.diff?d.diff.split(' ').slice(0,2).join(' '):'';
+    L.push('# '+icon+' '+(i+1)+' '+diff);
+    L.push('');
+    if(d.nom)      L.push(d.nom);
+    if(d.hauteur)  L.push('H: '+d.hauteur);
+    if(d.ancrage)  L.push('Ancrage: '+d.ancrage);
+    if(d.corde)    L.push('Corde: '+d.corde);
+    if(d.vasque)   L.push('Vasque: '+d.vasque);
+    if(d.debit)    L.push('Debit: '+d.debit);
+    if(d.variante) L.push('Var: '+d.variante);
+    if(d.warning)  L.push('/!\\ '+d.warning);
+    if(d.remarque) L.push('Note: '+d.remarque);
+    L.push('');
+  }
+  L.push('# Sortie');
+  L.push('');
+  if(gv('coords_sortie')) L.push('GPS: '+gv('coords_sortie'));
+  if(gv('retour_sortie')) L.push('Retour: '+gv('retour_sortie'));
+  if(gv('urgences'))      L.push('Urgences: '+gv('urgences'));
+  if(gv('hebergement'))   L.push('Heberg: '+gv('hebergement'));
+
+  var content=L.join('\n');
+  document.getElementById('result-text').value=content;
+  var box=document.getElementById('result-box');
+  box.classList.add('show');
+  box.scrollIntoView({behavior:'smooth',block:'start'});
+});
+
+document.getElementById('copy-btn').addEventListener('click',function(){
+  var ta=document.getElementById('result-text');
+  ta.select();
+  try{
+    navigator.clipboard.writeText(ta.value).then(function(){
+      var btn=document.getElementById('copy-btn');
+      btn.textContent='✅ Copié !';btn.classList.add('copied');
+      setTimeout(function(){btn.textContent='📋 Tout copier dans le presse-papier';btn.classList.remove('copied');},2500);
+    });
+  }catch(e){
+    document.execCommand('copy');
+    var btn=document.getElementById('copy-btn');
+    btn.textContent='✅ Copié !';btn.classList.add('copied');
+    setTimeout(function(){btn.textContent='📋 Tout copier dans le presse-papier';btn.classList.remove('copied');},2500);
+  }
+});
+</script>
+</body>
+</html>
